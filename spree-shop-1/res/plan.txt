@@ -1,0 +1,2 @@
+https://www.npmjs.com/package/gulp-dot-template - вот эту хероту добавить для темплейтинга
+
