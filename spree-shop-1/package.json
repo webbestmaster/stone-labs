@@ -9,8 +9,12 @@
   "author": "dim",
   "license": "ISC",
   "devDependencies": {
-    "gulp": "^3.9.1",
     "dot": "^1.0.3",
-    "gulp-dot-template": "^0.2.1"
+    "gulp": "^3.9.1",
+    "gulp-autoprefixer": "^3.1.1",
+    "gulp-cssimport": "^4.0.1",
+    "gulp-dot-template": "^0.2.1",
+    "gulp-rimraf": "^0.2.0",
+    "gulp-sass": "^2.3.2"
   }
 }

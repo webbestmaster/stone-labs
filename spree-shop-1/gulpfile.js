@@ -4,7 +4,14 @@ const path = require('path');
 const gulp = require('gulp');
 const dot = require('dot');
 const template = require('gulp-dot-template');
-// const autoprefixer = require('gulp-autoprefixer');
+
+const cssimport = require('gulp-cssimport');
+
+const sass = require('gulp-sass');
+
+const clean = require('gulp-rimraf');
+
+const autoprefixer = require('gulp-autoprefixer');
 
 /*
  gulp.task('default', /!*['clear-dist'],*!/ function () {
@@ -12,10 +19,12 @@ const template = require('gulp-dot-template');
  });
  */
 
-gulp.task('watch', ['html', 'css', 'js', 'copy-data'], function () {
-    // gulp.watch('./www/*.html', ['html']);
-});
+/*
+ gulp.task('watch', ['html', 'css', 'js', 'copy-data'], function () {
+ // gulp.watch('./www/!*.html', ['html']);
+ });
 
+ */
 
 gulp.task('default', function () {
 
@@ -35,6 +44,52 @@ gulp.task('dot', function () {
 
 });
 
+gulp.task('css', function () {
+    return gulp.start('import-css', 'sass', 'autoprefix');
+});
+
+    gulp.task('import-css', function () {
+        return gulp.src('./www/css/main/main.scss')
+            .pipe(cssimport({}))
+            .pipe(gulp.dest('./dist/'));
+    });
+
+    gulp.task('sass', function () {
+        return gulp.src('./dist/main.scss')
+            .pipe(clean({force: true}))
+            .pipe(sass())
+            .pipe(gulp.dest('./dist/'));
+    });
+
+
+    gulp.task('autoprefix', function () {
+        return gulp.src('./dist/main.css')
+            .pipe(autoprefixer({
+                browsers: ['last 2 version', 'safari 5', 'ie 9', 'opera 12.1', 'ios 6', 'android 4'],
+                cascade: false
+            }))
+            .pipe(gulp.dest('./dist/'));
+    });
+
+
+gulp.task('clean', function () {
+    return gulp.src('./dist/main.scss')
+        .pipe(clean({force: true}));
+});
+
+/*
+
+ gulp.task('sass', ['import-css'], function () {
+ return gulp.src('./dist/css/main.css')
+ .pipe(sass())
+ .pipe(clean({force: true}))
+ .pipe(gulp.dest('./dist/www/css'));
+ });
+
+ */
+
+
+// util section
 function _walk(dir, done) {
     var results = [];
     fs.readdir(dir, function (err, list) {
@@ -99,7 +154,6 @@ function readFiles(pathToFolder, {test = /[\s\S]+/}) {
         );
 
 }
-
 
 
 // helper for clean
