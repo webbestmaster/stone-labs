@@ -54,7 +54,7 @@ function walk(path) {
     );
 }
 
-function readChunk(path) {
+function readFile(path) {
 
     return new Promise((resolve, reject) =>
         fs.readFile(path, 'utf8', (err, data) =>
@@ -63,11 +63,17 @@ function readChunk(path) {
     );
 }
 
+function createFindConfig(config) {
+    return config || {
+            test: /\.html/ // create the same for chunks
+        }
+}
+
 function readChunks(pathToFolder) {
 
     return walk(pathToFolder)
         .then(paths =>
-            Promise.all(paths.map(readChunk))
+            Promise.all(paths.map(readFile))
         )
         .then(files => {
                 var map = {};
@@ -85,30 +91,56 @@ function readChunks(pathToFolder) {
 
 }
 
+function readTemplates(pathToFolder) {
+
+    return walk(pathToFolder)
+        .then(paths =>
+            Promise.all(
+                paths
+                    .filter(path => /\.html/.test(path))
+                    .map(readFile)
+            )
+        )
+        .then(files =>
+            files.map(
+                file => ({
+                    path: file.path
+                        .replace(path.resolve(__dirname, pathToFolder), '')
+                        .replace(path.sep, ''),
+                    templateFn: dot.template(file.data)
+                })
+            )
+        );
+
+}
+
 gulp.task('dot', function () {
 
     // read files
-    return Promise.all([readChunks('www/chunks/')])
-        .then(function (result) {
+    return Promise.all([readChunks('www/chunks/'), readTemplates('www')])
+        .then(result => {
 
             var chunksMap = result[0];
+            var htmlList = result[1];
 
             console.log(chunksMap);
 
-            var indexHtmlText = fs.readFileSync('www/index.html');
+            htmlList.forEach(data => {
 
-            var tempFn = dot.template(indexHtmlText);
+                var resultText = data.templateFn({chunks: chunksMap});
 
-            var resultText = tempFn({chunks: chunksMap});
+                fs.writeFile(path.resolve('dist', data.path), resultText, 'utf8', function (err) {
+                    if (err) {
+                        return console.log(err);
+                    }
 
-            fs.writeFile("dist/index.html", resultText, 'utf8', function (err) {
-                if (err) {
-                    return console.log(err);
-                }
+                    console.log("The file was saved!");
 
-                console.log("The file was saved!");
+                });
+
 
             });
+
 
         })
         .catch(function (err) {
