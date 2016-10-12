@@ -10,7 +10,7 @@
   "license": "ISC",
   "devDependencies": {
     "dot": "^1.0.3",
-    "gulp": "^3.9.1",
+    "gulp": "github:gulpjs/gulp#4.0",
     "gulp-autoprefixer": "^3.1.1",
     "gulp-cssimport": "^4.0.1",
     "gulp-dot-template": "^0.2.1",
