@@ -23,7 +23,7 @@ gulp.task('default', function () {
 
 });
 
-function walk(dir, done) {
+function _walk(dir, done) {
     var results = [];
     fs.readdir(dir, function (err, list) {
         if (err) return done(err);
@@ -33,7 +33,7 @@ function walk(dir, done) {
             file = path.resolve(dir, file);
             fs.stat(file, function (err, stat) {
                 if (stat && stat.isDirectory()) {
-                    walk(file, function (err, res) {
+                    _walk(file, function (err, res) {
                         results = results.concat(res);
                         if (!--pending) done(null, results);
                     });
@@ -46,47 +46,41 @@ function walk(dir, done) {
     });
 }
 
-function walkProm(path) {
-    return new Promise(function (resolve, reject) {
-
-        walk(path, (err, result) => err ? reject(err) : resolve(result) );
-
-    });
-
+function walk(path) {
+    return new Promise((resolve, reject) =>
+        _walk(path, (err, result) =>
+            err ? reject(err) : resolve(result)
+        )
+    );
 }
 
 function readChunk(path) {
 
-    return new Promise(function (resolve, reject) {
-
-        fs.readFile(path, 'utf-8', function (err, data) {
-
-            if (err) {
-                return reject(err);
-            }
-
-            console.log('chunk has been read');
-
-            resolve({path, data});
-
-        });
-
-    });
+    return new Promise((resolve, reject) =>
+        fs.readFile(path, 'utf8', (err, data) =>
+            err ? reject(err) : resolve({path, data})
+        )
+    );
 }
 
 function readChunks(pathToFolder) {
 
-    return walkProm(pathToFolder)
-        .then(paths => {
-            return Promise.all(paths.map(path => readChunk(path)));
-        })
-        .then(files => files.map(
-            file => ({
-                path: file.path
-                    .replace(path.resolve(__dirname, pathToFolder), '')
-                    .replace(path.sep, ''),
-                data: file.data
-            }))
+    return walk(pathToFolder)
+        .then(paths =>
+            Promise.all(paths.map(readChunk))
+        )
+        .then(files => {
+                var map = {};
+                files.forEach(
+                    file => {
+                        var key = file.path
+                            .replace(path.resolve(__dirname, pathToFolder), '')
+                            .replace(path.sep, '');
+                        map[key] = dot.template(file.data);
+                    }
+                );
+                return map;
+            }
         );
 
 }
@@ -94,40 +88,34 @@ function readChunks(pathToFolder) {
 gulp.task('dot', function (cb) {
 
     // read files
+    readChunks('www/chunks/')
+        .then(function (chunksMap) {
 
-    readChunks('www/chunks/').then(function (files) {
-        console.log(files);
-        cb();
-    }).catch(function (err) {
-        console.log(err);
-        cb();
-    });
+            console.log(chunksMap)
 
-    return false;
+            var indexHtmlText = fs.readFileSync('www/index.html');
 
-    var indexHtmlText = fs.readFileSync('www/index.html');
+            var tempFn = dot.template(indexHtmlText);
 
-    var head = fs.readFileSync('www/templates/head/index.dot');
+            var resultText = tempFn({chunk: chunksMap});
 
-    var tempFn = dot.template(indexHtmlText);
+            fs.writeFile("dist/index.html", resultText, 'utf8', function (err) {
+                if (err) {
+                    return console.log(err);
+                }
 
-    var resultText = tempFn({head: head});
+                console.log("The file was saved!");
+
+                cb();
+
+            });
 
 
-    fs.writeFile("dist/index.html", resultText, function (err) {
-        if (err) {
-            return console.log(err);
-        }
-
-        console.log("The file was saved!");
-
-        cd();
-
-    });
-
-    // return gulp.src('www/*.html')
-    //     .pipe(template({ name: 'Bob' }))
-    //     .pipe(gulp.dest('dist'));
+        })
+        .catch(function (err) {
+            console.log(err);
+            cb();
+        });
 
 });
 
