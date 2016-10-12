@@ -3,7 +3,7 @@ const path = require('path');
 
 const gulp = require('gulp');
 const dot = require('dot');
-// const template = require('gulp-dot-template');
+const template = require('gulp-dot-template');
 // const autoprefixer = require('gulp-autoprefixer');
 
 /*
@@ -20,6 +20,18 @@ gulp.task('watch', ['html', 'css', 'js', 'copy-data'], function () {
 gulp.task('default', function () {
 
     return gulp.start('dot');
+
+});
+
+gulp.task('dot', function () {
+
+    return readFiles('www/chunks/', {test: /\.dot$/})
+        .then(chunks => {
+            return gulp.src('www/*.html')
+                .pipe(template({chunks}))
+                .pipe(gulp.dest('dist'));
+
+        });
 
 });
 
@@ -63,17 +75,14 @@ function readFile(path) {
     );
 }
 
-function createFindConfig(config) {
-    return config || {
-            test: /\.html/ // create the same for chunks
-        }
-}
-
-function readChunks(pathToFolder) {
+function readFiles(pathToFolder, {test = /[\s\S]+/}) {
 
     return walk(pathToFolder)
         .then(paths =>
-            Promise.all(paths.map(readFile))
+            Promise.all(paths
+                .filter(() => test.test)
+                .map(readFile)
+            )
         )
         .then(files => {
                 var map = {};
@@ -82,7 +91,7 @@ function readChunks(pathToFolder) {
                         var key = file.path
                             .replace(path.resolve(__dirname, pathToFolder), '')
                             .replace(path.sep, '');
-                        map[key] = dot.template(file.data);
+                        map[key] = file.data;
                     }
                 );
                 return map;
@@ -91,64 +100,6 @@ function readChunks(pathToFolder) {
 
 }
 
-function readTemplates(pathToFolder) {
-
-    return walk(pathToFolder)
-        .then(paths =>
-            Promise.all(
-                paths
-                    .filter(path => /\.html/.test(path))
-                    .map(readFile)
-            )
-        )
-        .then(files =>
-            files.map(
-                file => ({
-                    path: file.path
-                        .replace(path.resolve(__dirname, pathToFolder), '')
-                        .replace(path.sep, ''),
-                    templateFn: dot.template(file.data)
-                })
-            )
-        );
-
-}
-
-gulp.task('dot', function () {
-
-    // read files
-    return Promise.all([readChunks('www/chunks/'), readTemplates('www')])
-        .then(result => {
-
-            var chunksMap = result[0];
-            var htmlList = result[1];
-
-            console.log(chunksMap);
-
-            htmlList.forEach(data => {
-
-                var resultText = data.templateFn({chunks: chunksMap});
-
-                fs.writeFile(path.resolve('dist', data.path), resultText, 'utf8', function (err) {
-                    if (err) {
-                        return console.log(err);
-                    }
-
-                    console.log("The file was saved!");
-
-                });
-
-
-            });
-
-
-        })
-        .catch(function (err) {
-            console.log(err);
-            cb();
-        });
-
-});
 
 
 // helper for clean

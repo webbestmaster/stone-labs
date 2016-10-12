@@ -1,21 +1,16 @@
 {
   "name": "spree-shop-1",
   "version": "0.1.0",
-  "description": "fe for project",
-  "main": "index.js",
+  "description": "",
+  "main": "gulpfile.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "devDependencies": {
-    "dot": "^1.0.3",
-    "gulp": "^3.9.1"
-  },
-  "keywords": [
-    "spree",
-    "shop",
-    "fe",
-    "src"
-  ],
   "author": "dim",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "dot": "^1.0.3",
+    "gulp-dot-template": "^0.2.1"
+  }
 }
