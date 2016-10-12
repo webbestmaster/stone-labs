@@ -85,19 +85,21 @@ function readChunks(pathToFolder) {
 
 }
 
-gulp.task('dot', function (cb) {
+gulp.task('dot', function () {
 
     // read files
-    readChunks('www/chunks/')
-        .then(function (chunksMap) {
+    return Promise.all([readChunks('www/chunks/')])
+        .then(function (result) {
 
-            console.log(chunksMap)
+            var chunksMap = result[0];
+
+            console.log(chunksMap);
 
             var indexHtmlText = fs.readFileSync('www/index.html');
 
             var tempFn = dot.template(indexHtmlText);
 
-            var resultText = tempFn({chunk: chunksMap});
+            var resultText = tempFn({chunks: chunksMap});
 
             fs.writeFile("dist/index.html", resultText, 'utf8', function (err) {
                 if (err) {
@@ -106,10 +108,7 @@ gulp.task('dot', function (cb) {
 
                 console.log("The file was saved!");
 
-                cb();
-
             });
-
 
         })
         .catch(function (err) {

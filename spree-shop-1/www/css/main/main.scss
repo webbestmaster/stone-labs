@@ -1,11 +1,8 @@
+
+// initial part
 @import "reset.scss";
 @import "vars.scss";
+@import "style.scss";
 
-// begin - main css
-
-body {
-  font-size: 1rem;
-}
-
-
-// end - main css
+// chunks part
+@import "../chunks/header.scss";
