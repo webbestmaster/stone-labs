@@ -12,20 +12,24 @@ const cssimport = require('gulp-cssimport');
 const sass = require('gulp-sass');
 const autoprefixer = require('gulp-autoprefixer');
 
+const rootFolder = 'www';
+const rootStaticFolder = path.join(rootFolder, 'static');
+const distFolder = 'dist';
+const distStaticFolder = path.join(distFolder, 'static');
 
 gulp.task('clean', function () {
-    return gulp.src('./dist/**/*')
+    return gulp.src(path.join(distFolder, '**', '*'))
         .pipe(clean({force: true}));
 });
 
 
 gulp.task('dot', function () {
 
-    return readFiles('www/chunks/', {test: /\.dot$/})
+    return readFiles(path.join(rootFolder, 'chunks'), {test: /\.dot$/})
         .then(chunks => {
-            return gulp.src('www/*.html')
+            return gulp.src(path.join(rootFolder, '*.html'))
                 .pipe(template({chunks}))
-                .pipe(gulp.dest('dist'));
+                .pipe(gulp.dest(distFolder));
 
         });
 
@@ -33,48 +37,52 @@ gulp.task('dot', function () {
 
 
 gulp.task('import-css', function () {
-    return gulp.src('./www/css/main/main.scss')
+    return gulp.src(path.join(rootFolder, 'css', 'main', 'main.scss'))
         .pipe(cssimport({}))
-        .pipe(gulp.dest('./dist/'));
+        .pipe(gulp.dest(distFolder));
 });
 
 gulp.task('sass', function () {
-    return gulp.src('./dist/main.scss')
+    return gulp.src(path.join(distFolder, 'main.scss'))
         .pipe(clean({force: true}))
         .pipe(sass())
-        .pipe(gulp.dest('./dist/'));
+        .pipe(gulp.dest(distFolder));
 });
 
 
 gulp.task('autoprefix', function () {
-    return gulp.src('./dist/main.css')
+    return gulp.src(path.join(distFolder, 'main.css'))
         .pipe(autoprefixer({
             browsers: ['last 4 version', 'safari 5', 'ie 9', 'opera 12.1', 'ios 6', 'android 4'],
             cascade: false
         }))
-        .pipe(gulp.dest('./dist/'));
+        .pipe(gulp.dest(distFolder));
 });
 
 gulp.task('css', gulp.series('import-css', 'sass', 'autoprefix'));
 
-gulp.task('copy:data', function () {
-    return gulp.src('www/static/**/*').pipe(gulp.dest('./dist/static/'));
+gulp.task('copy-data', function () {
+    return gulp.src(path.join(rootStaticFolder, '**', '*')).pipe(gulp.dest(distStaticFolder));
 });
 
 // DEFAULT TASK
-gulp.task('default', gulp.series('clean', gulp.parallel('css', 'dot')));
+gulp.task('default', gulp.series('clean', gulp.parallel('css', 'dot', 'copy-data')));
 
 
 // WATCH TASK
 gulp.task('watch:dot', function () {
-    gulp.watch('www/*.html', gulp.series('dot'));
+    gulp.watch(path.join(rootFolder, '*.html'), gulp.series('dot'));
 });
 
 gulp.task('watch:css', function () {
-    gulp.watch('www/**/*.scss', gulp.series('css'));
+    gulp.watch(path.join(rootFolder, '**', '*.scss'), gulp.series('css'));
 });
 
-gulp.task('watch', gulp.series('default', gulp.parallel('watch:dot', 'watch:css')) );
+gulp.task('watch:static', function () {
+    gulp.watch(path.join(rootStaticFolder, '**', '*'), gulp.series('copy-data'));
+});
+
+gulp.task('watch', gulp.series('default', gulp.parallel('watch:dot', 'watch:css', 'watch:static')) );
 
 
 
