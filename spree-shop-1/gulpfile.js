@@ -49,7 +49,7 @@ gulp.task('sass', function () {
 gulp.task('autoprefix', function () {
     return gulp.src('./dist/main.css')
         .pipe(autoprefixer({
-            browsers: ['last 2 version', 'safari 5', 'ie 9', 'opera 12.1', 'ios 6', 'android 4'],
+            browsers: ['last 4 version', 'safari 5', 'ie 9', 'opera 12.1', 'ios 6', 'android 4'],
             cascade: false
         }))
         .pipe(gulp.dest('./dist/'));
@@ -62,12 +62,18 @@ gulp.task('css', gulp.series('import-css', 'sass', 'autoprefix'));
 gulp.task('default', gulp.series('clean', gulp.parallel('css', 'dot')));
 
 
-/*
- gulp.task('watch', ['html', 'css', 'js', 'copy-data'], function () {
- // gulp.watch('./www/!*.html', ['html']);
- });
+// WATCH TASK
+gulp.task('watch:dot', function () {
+    gulp.watch('www/*.html', gulp.series('dot'));
+});
 
- */
+gulp.task('watch:css', function () {
+    gulp.watch('www/**/*.scss', gulp.series('css'));
+});
+
+gulp.task('watch', gulp.series('default', gulp.parallel('watch:dot', 'watch:css')) );
+
+
 
 
 // util section
