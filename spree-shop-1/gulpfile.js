@@ -57,6 +57,9 @@ gulp.task('autoprefix', function () {
 
 gulp.task('css', gulp.series('import-css', 'sass', 'autoprefix'));
 
+gulp.task('copy:data', function () {
+    return gulp.src('www/static/**/*').pipe(gulp.dest('./dist/static/'));
+});
 
 // DEFAULT TASK
 gulp.task('default', gulp.series('clean', gulp.parallel('css', 'dot')));
