@@ -18,7 +18,7 @@ const distFolder = 'dist';
 const distStaticFolder = path.join(distFolder, 'static');
 
 gulp.task('clean', function () {
-    return gulp.src(path.join(distFolder, '**', '*'))
+    return gulp.src(path.join(distFolder, '**', '*'), { read: false })
         .pipe(clean({force: true}));
 });
 
@@ -28,12 +28,17 @@ gulp.task('dot', function () {
     return readFiles(path.join(rootFolder, 'chunks'), {test: /\.dot$/})
         .then(chunks => {
             return gulp.src(path.join(rootFolder, '*.html'))
-                .pipe(template({chunks}))
+                .pipe(template({chunks, dot}))
                 .pipe(gulp.dest(distFolder));
 
         });
 
 });
+
+gulp.task('watch:dot', function () {
+    gulp.watch([path.join(rootFolder, '**', '*.html'), path.join(rootFolder, '**', '*.dot')], gulp.series('dot'));
+});
+
 
 
 gulp.task('import-css', function () {
@@ -61,28 +66,34 @@ gulp.task('autoprefix', function () {
 
 gulp.task('css', gulp.series('import-css', 'sass', 'autoprefix'));
 
-gulp.task('copy-data', function () {
-    return gulp.src(path.join(rootStaticFolder, '**', '*')).pipe(gulp.dest(distStaticFolder));
-});
-
-// DEFAULT TASK
-gulp.task('default', gulp.series('clean', gulp.parallel('css', 'dot', 'copy-data')));
-
-
-// WATCH TASK
-gulp.task('watch:dot', function () {
-    gulp.watch(path.join(rootFolder, '*.html'), gulp.series('dot'));
-});
-
 gulp.task('watch:css', function () {
     gulp.watch(path.join(rootFolder, '**', '*.scss'), gulp.series('css'));
 });
 
-gulp.task('watch:static', function () {
+
+
+gulp.task('js', function () {
+    return gulp.src(path.join(rootFolder, 'js', '**', '*')).pipe(gulp.dest( path.join(distFolder, 'js')));
+});
+
+gulp.task('watch:js', function () {
+    gulp.watch(path.join(rootFolder, 'js', '**', '*'), gulp.series('js'));
+});
+
+
+
+gulp.task('copy-data', function () {
+    return gulp.src(path.join(rootStaticFolder, '**', '*')).pipe(gulp.dest(distStaticFolder));
+});
+
+gulp.task('watch:copy-data', function () {
     gulp.watch(path.join(rootStaticFolder, '**', '*'), gulp.series('copy-data'));
 });
 
-gulp.task('watch', gulp.series('default', gulp.parallel('watch:dot', 'watch:css', 'watch:static')) );
+
+
+gulp.task('default', gulp.series('clean', gulp.parallel('dot', 'css', 'js', 'copy-data')));
+gulp.task('watch', gulp.series('default', gulp.parallel('watch:dot', 'watch:css', 'watch:js', 'watch:copy-data')) );
 
 
 
