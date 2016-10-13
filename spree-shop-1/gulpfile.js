@@ -7,6 +7,7 @@ const clean = require('gulp-rimraf');
 
 const dot = require('dot');
 const template = require('gulp-dot-template');
+var prettifyHtml = require('gulp-html-prettify');
 
 const cssimport = require('gulp-cssimport');
 const sass = require('gulp-sass');
@@ -23,20 +24,30 @@ gulp.task('clean', function () {
 });
 
 
-gulp.task('dot', function () {
 
-    return readFiles(path.join(rootFolder, 'chunks'), {test: /\.dot$/})
-        .then(chunks => {
-            return gulp.src(path.join(rootFolder, '*.html'))
+gulp.task('dot', function (cb) {
+
+    readFiles(path.join(rootFolder, 'chunks'), {test: /\.dot$/})
+        .then(chunks =>
+            gulp.src(path.join(rootFolder, '*.html'))
                 .pipe(template({chunks, dot}))
-                .pipe(gulp.dest(distFolder));
+                .pipe(gulp.dest(distFolder))
+                .on('end', cb)
 
-        });
+        );
 
 });
 
-gulp.task('watch:dot', function () {
-    gulp.watch([path.join(rootFolder, '**', '*.html'), path.join(rootFolder, '**', '*.dot')], gulp.series('dot'));
+gulp.task('prettify-html', function() {
+    return gulp.src(path.join(distFolder, '*.html'))
+        .pipe(prettifyHtml({indent_char: ' ', indent_size: 4}))
+        .pipe(gulp.dest(distFolder));
+});
+
+gulp.task('html', gulp.series('dot', 'prettify-html'));
+
+gulp.task('watch:html', function () {
+    gulp.watch([path.join(rootFolder, '**', '*.html'), path.join(rootFolder, '**', '*.dot')], gulp.series('html'));
 });
 
 
@@ -92,8 +103,8 @@ gulp.task('watch:copy-data', function () {
 
 
 
-gulp.task('default', gulp.series('clean', gulp.parallel('dot', 'css', 'js', 'copy-data')));
-gulp.task('watch', gulp.series('default', gulp.parallel('watch:dot', 'watch:css', 'watch:js', 'watch:copy-data')) );
+gulp.task('default', gulp.series('clean', gulp.parallel('html', 'css', 'js', 'copy-data')));
+gulp.task('watch', gulp.series('default', gulp.parallel('watch:html', 'watch:css', 'watch:js', 'watch:copy-data')) );
 
 
 

@@ -14,6 +14,7 @@
     "gulp-autoprefixer": "^3.1.1",
     "gulp-cssimport": "^4.0.1",
     "gulp-dot-template": "^0.2.1",
+    "gulp-html-prettify": "0.0.1",
     "gulp-rimraf": "^0.2.0",
     "gulp-sass": "^2.3.2"
   }
