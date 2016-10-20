@@ -17,7 +17,7 @@ const rootStaticFolder = path.join(rootFolder, 'static');
 const distFolder = 'dist';
 const distStaticFolder = path.join(distFolder, 'static');
 
-const readFiles = require('./my-gulp-util').readFiles;
+const readFiles = require('./gulp/my-gulp-util').readFiles;
 
 gulp.task('clean', function () {
     return gulp.src(path.join(distFolder, '**', '*'), { read: false })

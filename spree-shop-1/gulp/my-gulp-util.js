@@ -56,7 +56,7 @@ module.exports.readFiles = function readFiles(pathToFolder, {test = /[\s\S]+/}) 
                 files.forEach(
                     file => {
                         var key = file.path
-                            .replace(path.resolve(__dirname, pathToFolder), '')
+                            .replace(path.resolve(process.cwd(), pathToFolder), '')
                             .replace(path.sep, '');
                         map[key] = file.data;
                     }
